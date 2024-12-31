@@ -49,5 +49,10 @@ end
 --- @param title string
 --- @param message string
 function Log(title, message)
-	TriggerServerEvent("qb-log:server:CreateLog", "ps-adminmenu", title, "red", message)
+	TriggerServerEvent('fl_adminmenu:discordLog', title, message)
 end
+
+
+RegisterNetEvent('fl_adminmenu:fixVehicle', function()
+	SetVehicleFixed(cache.vehicle)
+end)

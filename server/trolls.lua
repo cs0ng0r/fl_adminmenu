@@ -5,27 +5,37 @@ RegisterNetEvent('ps-adminmenu:server:FreezePlayer', function(data, selectedData
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
 
+    if type(selectedData['Player']) ~= 'table' then
+        return
+    end
     local target = selectedData["Player"].value
 
     local ped = GetPlayerPed(target)
-    local Player = QBCore.Functions.GetPlayer(target)
+    local Player = ESX.GetPlayerFromId(target)
+
+    if not Player then
+        return TriggerClientEvent('ox_lib:notify', src, {
+            description = locale('not_online'),
+            type = 'error'
+        })
+    end
 
     if not frozen then
         frozen = true
         FreezeEntityPosition(ped, true)
-        QBCore.Functions.Notify(src,
-            locale("Frozen",
-                Player.PlayerData.charinfo.firstname ..
-                " " .. Player.PlayerData.charinfo.lastname .. " | " .. Player.PlayerData.citizenid), 'Success', 7500)
+
+        TriggerClientEvent('ox_lib:notify', src, {
+            description = locale("Frozen", Player.getName() .. " | " .. Player.identifier),
+            type = 'success'
+        })
     else
         frozen = false
         FreezeEntityPosition(ped, false)
-        QBCore.Functions.Notify(src,
-            locale("deFrozen",
-                Player.PlayerData.charinfo.firstname ..
-                " " .. Player.PlayerData.charinfo.lastname .. " | " .. Player.PlayerData.citizenid), 'Success', 7500)
+        TriggerClientEvent('ox_lib:notify', src, {
+            description = locale("deFrozen", Player.getName() .. " | " .. Player.identifier),
+            type = 'success'
+        })
     end
-    if Player == nil then return QBCore.Functions.Notify(src, locale("not_online"), 'error', 7500) end
 end)
 
 -- Drunk Player
@@ -35,16 +45,18 @@ RegisterNetEvent('ps-adminmenu:server:DrunkPlayer', function(data, selectedData)
 
     local src = source
     local target = selectedData["Player"].value
-    local targetPed = GetPlayerPed(target)
-    local Player = QBCore.Functions.GetPlayer(target)
+    local Player = ESX.GetPlayerFromId(target)
 
     if not Player then
-        return QBCore.Functions.Notify(src, locale("not_online"), 'error', 7500)
+        return TriggerClientEvent('ox_lib:notify', src, {
+            description = locale('not_online'),
+            type = 'error'
+        })
     end
 
     TriggerClientEvent('ps-adminmenu:client:InitiateDrunkEffect', target)
-    QBCore.Functions.Notify(src,
-        locale("playerdrunk",
-            Player.PlayerData.charinfo.firstname ..
-            " " .. Player.PlayerData.charinfo.lastname .. " | " .. Player.PlayerData.citizenid), 'Success', 7500)
+    TriggerClientEvent('ox_lib:notify', src, {
+        description = locale("playerdrunk", Player.getName() .. " | " .. Player.identifier),
+        type = 'success'
+    })
 end)

@@ -2,26 +2,26 @@
 	import { MENU_WIDE } from '@store/stores'
 	import { SendNUI } from '@utils/SendNUI'
 
-	let message = "";
+	let message = ''
 
 	function sendMessage() {
-        if (!message.trim()) return;
-        SendNUI("SendMessage", {
-            message: message,
-        });
+		if (!message.trim()) return
+		SendNUI('SendMessage', {
+			message: message,
+		})
 		// console.log("Message sent", message)
-        message = "";
+		message = ''
 		setTimeout(() => {
-            scrollToBottom();
-        }, 100);
-    }
+			scrollToBottom()
+		}, 100)
+	}
 	function scrollToBottom() {
-        let chatList = document.getElementById("chatList");
-        chatList.scroll({
-            top: chatList.scrollHeight,
-            behavior: 'auto'
-        });
-    }
+		let chatList = document.getElementById('chatList')
+		chatList.scroll({
+			top: chatList.scrollHeight,
+			behavior: 'auto',
+		})
+	}
 </script>
 
 <div
@@ -29,14 +29,16 @@
 >
 	<input
 		type="text"
-		placeholder="Your message here"
+		placeholder="Ide írd az üzenetet"
 		on:keydown={(e) => {
-			if (e.key === "Enter") {
-				sendMessage();
+			if (e.key === 'Enter') {
+				sendMessage()
 			}
 		}}
 		bind:value={message}
-		class="h-full px-[1vh] bg-transparent text-[1.7vh] {$MENU_WIDE ? 'w-[94%]' : 'w-[80%]'}"
+		class="h-full px-[1vh] bg-transparent text-[1.7vh] {$MENU_WIDE
+			? 'w-[94%]'
+			: 'w-[80%]'}"
 	/>
 	<button
 		class="h-full w-[5vh] rounded-r-[0.5vh] hover:bg-secondary"

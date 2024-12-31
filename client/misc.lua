@@ -16,13 +16,19 @@ RegisterNetEvent('ps-adminmenu:client:ToggleGodmode', function(data)
     godmode = not godmode
 
     if godmode then
-        QBCore.Functions.Notify(locale("godmode", "enabled"), 'primary')
+        lib.notify({
+            description = locale("godmode", "enabled"),
+            type = 'inform'
+        })
         while godmode do
             Wait(0)
             SetPlayerInvincible(cache.playerId, true)
         end
         SetPlayerInvincible(cache.playerId, false)
-        QBCore.Functions.Notify(locale("godmode", "disabled"), 'primary')
+        lib.notify({
+            description = locale("godmode", "disabled"),
+            type = 'inform'
+        })
     end
 end)
 
@@ -36,8 +42,13 @@ end)
 local function CopyCoords(data)
     local coords = GetEntityCoords(cache.ped)
     local heading = GetEntityHeading(cache.ped)
-    local formats = { vector2 = "%.2f, %.2f", vector3 = "%.2f, %.2f, %.2f", vector4 = "%.2f, %.2f, %.2f, %.2f", heading =
-    "%.2f" }
+    local formats = {
+        vector2 = "%.2f, %.2f",
+        vector3 = "%.2f, %.2f, %.2f",
+        vector4 = "%.2f, %.2f, %.2f, %.2f",
+        heading =
+        "%.2f"
+    }
     local format = formats[data]
 
     local clipboardText = ""
@@ -74,27 +85,6 @@ RegisterCommand("heading", function()
     CopyCoords("heading")
 end, false)
 
--- Infinite Ammo
-local InfiniteAmmo = false
-RegisterNetEvent('ps-adminmenu:client:setInfiniteAmmo', function(data)
-    local data = CheckDataFromKey(data)
-    if not data or not CheckPerms(data.perms) then return end
-    InfiniteAmmo = not InfiniteAmmo
-
-    if GetAmmoInPedWeapon(cache.ped, cache.weapon) < 6 then
-        SetAmmoInClip(cache.ped, cache.weapon, 10)
-        Wait(50)
-    end
-
-    while InfiniteAmmo do
-        SetPedInfiniteAmmo(cache.ped, true, cache.weapon)
-        RefillAmmoInstantly(cache.ped)
-        Wait(250)
-    end
-
-    SetPedInfiniteAmmo(cache.ped, false, cache.weapon)
-end)
-
 -- Toggle coords
 local showCoords = false
 local function showCoordsMenu()
@@ -106,10 +96,10 @@ local function showCoordsMenu()
             action = "showCoordsMenu",
             data = {
                 show = showCoords,
-                x = QBCore.Shared.Round(coords.x, 2),
-                y = QBCore.Shared.Round(coords.y, 2),
-                z = QBCore.Shared.Round(coords.z, 2),
-                heading = QBCore.Shared.Round(heading, 2)
+                x = ESX.Math.Round(coords.x, 2),
+                y = ESX.Math.Round(coords.y, 2),
+                z = ESX.Math.Round(coords.z, 2),
+                heading = ESX.Math.Round(heading, 2)
             }
         })
     end
@@ -136,9 +126,15 @@ RegisterNetEvent('ps-adminmenu:client:SetAmmo', function(data, selectedData)
 
     if weapon ~= nil then
         SetPedAmmo(cache.ped, weapon, ammo)
-        QBCore.Functions.Notify(locale("set_wepaon_ammo", tostring(ammo)), 'success')
+        lib.notify({
+            description = locale("set_wepaon_ammo", tostring(ammo)),
+            type = 'success'
+        })
     else
-        QBCore.Functions.Notify(locale("no_weapon"), 'error')
+        lib.notify({
+            description = locale("no_weapon"),
+            type = 'error'
+        })
     end
 end)
 
@@ -148,9 +144,15 @@ RegisterCommand("setammo", function(source)
     local ammo = 999
     if weapon ~= nil then
         SetPedAmmo(cache.ped, weapon, ammo)
-        QBCore.Functions.Notify(locale("set_wepaon_ammo", tostring(ammo)), 'success')
+        lib.notify({
+            description = locale("set_wepaon_ammo", tostring(ammo)),
+            type = 'success'
+        })
     else
-        QBCore.Functions.Notify(locale("no_weapon"), 'error')
+        lib.notify({
+            description = locale("no_weapon"),
+            type = 'error'
+        })
     end
 end, false)
 
@@ -167,7 +169,11 @@ RegisterNetEvent('ps-adminmenu:client:ToggleDev', function(dataKey)
     TriggerEvent('ps-adminmenu:client:ToggleCoords', dataKey)  -- toggle Coords
     TriggerEvent('ps-adminmenu:client:ToggleGodmode', dataKey) -- Godmode
 
-    QBCore.Functions.Notify(locale("toggle_dev"), 'success')
+
+    lib.notify({
+        description = locale("toggle_dev"),
+        type = 'success'
+    })
 end)
 
 -- Key Bindings

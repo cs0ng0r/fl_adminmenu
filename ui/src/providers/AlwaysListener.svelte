@@ -1,15 +1,21 @@
 <script lang="ts">
 	import { ACTION } from '@store/actions'
-	import { ITEM_DATA, VEHICLE_DATA, JOB_DATA, GANG_DATA, LOCATION_DATA, PED_LIST } from '@store/data'
+	import {
+		ITEM_DATA,
+		VEHICLE_DATA,
+		JOB_DATA,
+		GANG_DATA,
+		LOCATION_DATA,
+		PED_LIST,
+	} from '@store/data'
 	import { PLAYER, PLAYER_DATA } from '@store/players'
 	import { RESOURCE, RESOURCES, COMMANDS } from '@store/server'
 	import { VEHICLE_DEV } from '@store/vehicle_dev'
 	import { TOGGLE_COORDS } from '@store/togglecoords'
-	import { Message, Messages } from "@store/staffchat";
+	import { Message, Messages } from '@store/staffchat'
 	import { ReceiveNUI } from '@utils/ReceiveNUI'
 	import { debugData } from '@utils/debugData'
 	import { ENTITY_INFO } from '@store/entityInfo'
-
 
 	debugData([
 		{
@@ -21,7 +27,7 @@
 	debugData([
 		{
 			action: 'setBrowserMode',
-			data: true
+			data: true,
 		},
 	])
 
@@ -44,7 +50,6 @@
 		$VEHICLE_DATA = data.vehicles
 		$ITEM_DATA = data.items
 		$JOB_DATA = data.jobs
-		$GANG_DATA = data.gangs
 		$LOCATION_DATA = data.locations
 		$PED_LIST = data.pedlist
 	})
@@ -63,6 +68,5 @@
 	ReceiveNUI('setMessages', (data: any) => {
 		Message.set(data)
 		Messages.set($Message[0])
-	});
-
+	})
 </script>

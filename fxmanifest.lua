@@ -9,6 +9,9 @@ repository 'https://github.com/Project-Sloth/ps-adminmenu'
 
 lua54 'yes'
 
+dependency 'fl_punishment'
+dependency 'fl_spectate'
+
 ui_page 'html/index.html'
 -- ui_page 'http://localhost:5173/' --for dev
 
@@ -23,6 +26,7 @@ server_script {
 
 shared_script {
   '@ox_lib/init.lua',
+  '@es_extended/imports.lua',
   "shared/**",
 }
 
@@ -30,6 +34,7 @@ files {
   'html/**',
   'data/ped.lua',
   'data/object.lua',
+  'data/locations.lua',
   'locales/*.json',
 }
 

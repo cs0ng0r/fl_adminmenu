@@ -4,11 +4,15 @@
 	import { SendNUI } from '@utils/SendNUI'
 
 	let navigation = [
-		{ value: 'Staffchat', icon: 'fas fa-message' },
-		{ value: 'Players', icon: 'fas fa-users' },
-		{ value: 'Server', icon: 'fas fa-server' },
-		{ value: 'Commands', icon: 'fas fa-slash' },
-		{ value: 'Actions', icon: 'fas fa-wand-magic-sparkles' },
+		{ label: 'Admin Chat', value: 'Staffchat', icon: 'fas fa-message' },
+		{ label: 'Játékosok', value: 'Players', icon: 'fas fa-users' },
+		{ label: 'Szerver', value: 'Server', icon: 'fas fa-server' },
+		{ label: 'Parancsok', value: 'Commands', icon: 'fas fa-slash' },
+		{
+			label: 'Műveletek',
+			value: 'Actions',
+			icon: 'fas fa-wand-magic-sparkles',
+		},
 	]
 </script>
 
@@ -29,7 +33,7 @@
 	</div>
 
 	{#each navigation as nav}
-		<Button tooltiptext={nav.value} icon={nav.icon} value={nav.value} />
+		<Button tooltiptext={nav.label} icon={nav.icon} value={nav.value} />
 	{/each}
 
 	<button
@@ -61,7 +65,7 @@
 
 		hover:before:opacity-100 hover:after:opacity-100
 		"
-		data-tip="Dev Mode"
+		data-tip="Fejlesztői Mód"
 		on:click={() => {
 			DEV_MODE.update((wide) => !wide)
 			SendNUI('clickButton', {

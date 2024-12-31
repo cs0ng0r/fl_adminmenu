@@ -1,10 +1,9 @@
-QBCore = exports['qb-core']:GetCoreObject()
-PlayerData = {}
+PlayerData = ESX.GetPlayerData()
 
 -- Functions
 local function setupMenu()
 	Wait(500)
-	PlayerData = QBCore.Functions.GetPlayerData()
+	PlayerData = ESX.GetPlayerData()
 	local resources = lib.callback.await('ps-adminmenu:callback:GetResources', false)
 	local commands = lib.callback.await('ps-adminmenu:callback:GetCommands', false)
 	GetData()
@@ -20,7 +19,7 @@ local function setupMenu()
 end
 
 -- Event Handlers
-AddEventHandler("QBCore:Client:OnPlayerLoaded", function()
+RegisterNetEvent('esx:playerLoaded', function()
 	setupMenu()
 end)
 
@@ -49,10 +48,12 @@ RegisterNUICallback("clickButton", function(data)
 		ExecuteCommand(data.event)
 	end
 
+	PlayerData = ESX.GetPlayerData()
+
 	Log("Action Used: " .. key,
             PlayerData.name ..
             " (" ..
-            PlayerData.citizenid ..
+            PlayerData.identifier ..
             ") - Used: " .. key .. (selectedData and (" with args: " .. json.encode(selectedData)) or ""))
 end)
 

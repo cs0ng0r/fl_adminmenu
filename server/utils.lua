@@ -1,12 +1,14 @@
-local function noPerms(source)
-    QBCore.Functions.Notify(source, "You are not Admin or God.", 'error')
+local function noPerms(xPlayer)
+    xPlayer.showNotification("You are not Admin or God.", 'error')
 end
 
 --- @param perms string
 function CheckPerms(source, perms)
-    local hasPerms = QBCore.Functions.HasPermission(source, perms)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    print('CheckPerms', perms)
+    local hasPerms = true --# TODO: perm check
     if not hasPerms then
-        return noPerms(source)
+        return noPerms(xPlayer)
     end
 
     return hasPerms
@@ -49,8 +51,8 @@ end
 ---@param plate string
 ---@return boolean
 function CheckAlreadyPlate(plate)
-    local vPlate = QBCore.Shared.Trim(plate)
-    local result = MySQL.single.await("SELECT plate FROM player_vehicles WHERE plate = ?", { vPlate })
+    local vPlate = ESX.Math.Trim(plate)
+    local result = MySQL.single.await("SELECT plate FROM owned_vehicles WHERE plate = ?", { vPlate })
     if result and result.plate then return true end
     return false
 end
@@ -72,5 +74,26 @@ function CheckRoutingbucket(source, target)
     if sourceBucket == targetBucket then return end
 
     SetPlayerRoutingBucket(source, targetBucket)
-    QBCore.Functions.Notify(source, locale("bucket_set", targetBucket), 'error', 7500)
+    TriggerClientEvent('ox_lib:notify', source, {
+        description = locale("bucket_set", targetBucket),
+        type = 'error'
+    })
 end
+
+lib.callback.register('fl_adminmenu:getBasicServerData', function()
+    local vehicles = MySQL.query.await('SELECT * FROM vehicles')
+
+    return {
+        vehicles = vehicles,
+        jobs = ESX.GetJobs()
+    }
+end)
+
+RegisterNetEvent('fl_adminmenu:discordLog', function(title, msg)
+    ESX.DiscordLog(
+        "fl_adminmenu",
+        title,
+        "green",
+        msg
+    )
+end)

@@ -18,16 +18,6 @@ RegisterNetEvent('ps-adminmenu:client:ExplodePlayer', function(damage)
     end
 end)
 
--- Play Sound
-RegisterNetEvent('ps-adminmenu:client:PlaySound', function(data, selectedData)
-    local data = CheckDataFromKey(data)
-    if not data or not CheckPerms(data.perms) then return end
-    local player = selectedData["Player"].value
-    local sound = selectedData["Sound"].value
-
-    TriggerServerEvent("InteractSound_SV:PlayOnOne", player, sound, 0.30)
-end)
-
 -- Drunk Player
 RegisterNetEvent('ps-adminmenu:client:InitiateDrunkEffect', function()
     local playerPed = cache.ped

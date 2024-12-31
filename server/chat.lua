@@ -5,14 +5,15 @@ RegisterNetEvent('ps-adminmenu:server:sendMessageServer', function(message, citi
     if not CheckPerms(source, 'mod') then return end
 
     local time = os.time() * 1000
-    local players = QBCore.Functions.GetPlayers()
+    local players = GetPlayers()
 
-    for i = 1, #players, 1 do
-        local player = players[i]
-            if QBCore.Functions.IsOptin(player) then
-                QBCore.Functions.Notify(player, locale("new_staffchat", 'inform', 7500))
-            end
-        end
+    for _, player in pairs(players) do
+        --# TODO: admin check!
+        TriggerClientEvent('ox_lib:notify', player, {
+            description = locale("new_staffchat"),
+            type = 'inform'
+        })
+    end
 
     messages[#messages + 1] = { message = message, citizenid = citizenid, fullname = fullname, time = time }
 end)

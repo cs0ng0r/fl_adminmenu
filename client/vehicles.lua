@@ -1,28 +1,20 @@
 local function GetVehicleName(hash)
-    for _, v in pairs(QBCore.Shared.Vehicles) do
-        if hash == v.hash then
-            return v.model
-        end
-    end
+    local label = GetDisplayNameFromVehicleModel(hash)
+
+    return GetFilenameForAudioConversation(label)
 end
+RegisterNUICallback('getVehicleName', function(model, cb)
+    model = type(model) == 'number' and model or GetHashKey(model)
+    cb(GetVehicleName(model))
+end)
 
 -- Own Vehicle
-RegisterNetEvent('ps-adminmenu:client:Admincar', function(data)
+RegisterNetEvent('ps-adminmenu:client:Admincar', function(data, selectedData)
     local data = CheckDataFromKey(data)
     if not data or not CheckPerms(data.perms) then return end
 
-    if not cache.vehicle then return end
-
-    local props = lib.getVehicleProperties(cache.vehicle)
-    local name = GetVehicleName(props.model)
-    local sharedVehicles = QBCore.Shared.Vehicles[name]
-    local hash = GetHashKey(cache.vehicle)
-
-    if sharedVehicles then
-        TriggerServerEvent('ps-adminmenu:server:SaveCar', props, sharedVehicles, hash, props.plate)
-    else
-        QBCore.Functions.Notify(locale("cannot_store_veh"), 'error')
-    end
+    local model = selectedData['Vehicle'].value
+    ExecuteCommand('car ' .. model)
 end)
 
 -- Spawn Vehicle
@@ -43,7 +35,7 @@ RegisterNetEvent('ps-adminmenu:client:SpawnVehicle', function(data, selectedData
 
     local vehicle = CreateVehicle(hash, GetEntityCoords(cache.ped), GetEntityHeading(cache.ped), true, false)
     TaskWarpPedIntoVehicle(cache.ped, vehicle, -1)
-    
+
     Wait(100)
 
     if Config.Fuel == "ox_fuel" then
@@ -51,8 +43,6 @@ RegisterNetEvent('ps-adminmenu:client:SpawnVehicle', function(data, selectedData
     else
         exports[Config.Fuel]:SetFuel(vehicle, 100.0)
     end
-    
-    TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(vehicle))
 end)
 
 -- Refuel Vehicle
@@ -66,9 +56,15 @@ RegisterNetEvent('ps-adminmenu:client:RefuelVehicle', function(data)
         else
             exports[Config.Fuel]:SetFuel(cache.vehicle, 100.0)
         end
-        QBCore.Functions.Notify(locale("refueled_vehicle"), 'success')
+        lib.notify({
+            description = locale("refueled_vehicle"),
+            type = 'success'
+        })
     else
-        QBCore.Functions.Notify(locale("not_in_vehicle"), 'error')
+        lib.notify({
+            description = locale("not_in_vehicle"),
+            type = 'error'
+        })
     end
 end)
 
@@ -79,14 +75,22 @@ RegisterNetEvent('ps-adminmenu:client:ChangePlate', function(data, selectedData)
     local plate = selectedData["Plate"].value
 
     if string.len(plate) > 8 then
-        return QBCore.Functions.Notify(locale("plate_max"), "error", 5000)
+        lib.notify({
+            description = locale("plate_max"),
+            type = 'error'
+        })
+
+        return
     end
 
     if cache.vehicle then
         local AlreadyPlate = lib.callback.await("ps-adminmenu:callback:CheckAlreadyPlate", false, plate)
 
         if AlreadyPlate then
-            QBCore.Functions.Notify(locale("already_plate"), "error", 5000)
+            lib.notify({
+                description = locale("already_plate"),
+                type = 'error'
+            })
             return
         end
 
@@ -94,10 +98,11 @@ RegisterNetEvent('ps-adminmenu:client:ChangePlate', function(data, selectedData)
         TriggerServerEvent('ps-adminmenu:server:ChangePlate', plate, currentPlate)
         Wait(100)
         SetVehicleNumberPlateText(cache.vehicle, plate)
-        Wait(100)
-        TriggerServerEvent('qb-vehiclekeys:server:AcquireVehicleKeys', QBCore.Functions.GetPlate(cache.vehicle))
     else
-        QBCore.Functions.Notify(locale("not_in_vehicle"), 'error')
+        lib.notify({
+            description = locale("not_in_vehicle"),
+            type = 'error'
+        })
     end
 end)
 
@@ -152,7 +157,10 @@ local function UpgradePerformance(vehicle)
         SetVehicleMod(vehicle, modType, maxMod, customWheels)
     end
 
-    QBCore.Functions.Notify(locale("vehicle_max_modded"), 'success', 7500)
+    lib.notify({
+        description = locale("vehicle_max_modded"),
+        type = 'success'
+    })
 end
 
 
@@ -163,7 +171,10 @@ RegisterNetEvent('ps-adminmenu:client:maxmodVehicle', function(data)
     if cache.vehicle then
         UpgradePerformance(cache.vehicle)
     else
-        QBCore.Functions.Notify(locale("vehicle_not_driver"), 'error', 7500)
+        lib.notify({
+            description = locale("vehicle_not_driver"),
+            type = 'error'
+        })
     end
 end)
 
@@ -175,36 +186,25 @@ RegisterNetEvent("ps-adminmenu:client:SpawnPersonalVehicle", function(data, sele
 
     local plate = selectedData['VehiclePlate'].value
     local ped = PlayerPedId()
-    local coords = QBCore.Functions.GetCoords(ped)
-    local cid = QBCore.Functions.GetPlayerData().citizenid
+    local coords = GetEntityCoords(ped)
+    local heading = GetEntityHeading(ped)
 
-    lib.callback('ps-adminmenu:server:GetVehicleByPlate', false, function(vehModel)
-        vehicle = vehModel
-    end, plate)
+    local vehicleData = lib.callback.await('ps-adminmenu:server:GetVehicleByPlate', false, plate)
 
-    Wait(100)
-    QBCore.Functions.TriggerCallback('QBCore:Server:SpawnVehicle', function(vehicle)
-        local veh = NetToVeh(vehicle)
-        local props = QBCore.Functions.GetVehicleProperties(veh)
-        SetEntityHeading(veh, coords.w)
-        TaskWarpPedIntoVehicle(ped, veh, -1)
-        SetVehicleModKit(veh, 0)
-        Wait(100)
-        QBCore.Functions.SetVehicleProperties(veh, props)
-        SetVehicleNumberPlateText(veh, plate)
-        
+    ESX.Game.SpawnVehicle(vehicleData.model, coords, heading, function(vehicle)
+        SetEntityHeading(vehicle, heading)
+        TaskWarpPedIntoVehicle(ped, vehicle, -1)
+        SetVehicleModKit(vehicle, 0)
+        ESX.Game.SetVehicleProperties(vehicle, vehicleData)
+        SetVehicleNumberPlateText(vehicle, plate)
+
         if Config.Fuel == "ox_fuel" then
-            Entity(veh).state.fuel = 100.0
+            Entity(vehicle).state.fuel = 100.0
         else
-            exports[Config.Fuel]:SetFuel(veh, 100.0)
+            exports[Config.Fuel]:SetFuel(vehicle, 100.0)
         end
-
-        TriggerEvent("vehiclekeys:client:SetOwner", plate)
-        TriggerEvent('iens:repaira', ped)
-        TriggerEvent('vehiclemod:client:fixEverything', ped)
-    end, vehicle, coords, true)
+    end)
 end)
-
 
 -- Get Vehicle Data
 lib.callback.register("ps-adminmenu:client:getvehData", function(vehicle)
@@ -217,7 +217,7 @@ lib.callback.register("ps-adminmenu:client:getvehData", function(vehicle)
     if DoesEntityExist(veh) then
         SetEntityCollision(veh, false, false)
         FreezeEntityPosition(veh, true)
-        prop = QBCore.Functions.GetVehicleProperties(veh)
+        prop = ESX.Game.GetVehicleProperties(veh)
         Wait(500)
         DeleteVehicle(veh)
     end

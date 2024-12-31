@@ -1,9 +1,9 @@
 Config = Config or {}
 
-Config.Fuel = "ps-fuel"        -- "ps-fuel", "LegacyFuel", "ox_fuel"
-Config.ResourcePerms = 'admin' -- permission to control resource(start stop restart)
+Config.Fuel = "ps-fuel"            -- "ps-fuel", "LegacyFuel", "ox_fuel"
+Config.ResourcePerms = 'admin'     -- permission to control resource(start stop restart)
 Config.ShowCommandsPerms = 'admin' -- permission to show all commands
-Config.RenewedPhone = false    -- if you use qb-phone from renewed. (multijob)
+Config.RenewedPhone = false        -- if you use qb-phone from renewed. (multijob)
 
 -- Key Bindings
 Config.Keybindings = true
@@ -16,34 +16,21 @@ Config.DefaultGarage = "Alta Garage"
 Config.Actions = {
     ["admin_car"] = {
         label = "Admin Car",
-        type = "client",
-        event = "ps-adminmenu:client:Admincar",
         perms = "mod",
+        dropdown = {
+            { label = "Vehicle", option = "dropdown", data = "vehicles" },
+            { label = "Spawn",   option = "button",   type = "client",  event = "ps-adminmenu:client:Admincar" },
+        }
     },
 
     ["ban_player"] = {
         label = "Ban Player",
         perms = "mod",
         dropdown = {
-            { label = "Player", option = "dropdown", data = "players" },
-            { label = "Reason", option = "text" },
-            {
-                label = "Duration",
-                option = "dropdown",
-                data = {
-                    { label = "Permanent",  value = "2147483647" },
-                    { label = "10 Minutes", value = "600" },
-                    { label = "30 Minutes", value = "1800" },
-                    { label = "1 Hour",     value = "3600" },
-                    { label = "6 Hours",    value = "21600" },
-                    { label = "12 Hours",   value = "43200" },
-                    { label = "1 Day",      value = "86400" },
-                    { label = "3 Days",     value = "259200" },
-                    { label = "1 Week",     value = "604800" },
-                    { label = "3 Week",     value = "1814400" },
-                },
-            },
-            { label = "Confirm", option = "button", type = "server", event = "ps-adminmenu:server:BanPlayer" },
+            { label = "Player",  option = "dropdown", data = "players" },
+            { label = "Reason",  option = "text" },
+            { label = "Days",    option = "text" },
+            { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:BanPlayer" },
         },
     },
 
@@ -161,11 +148,11 @@ Config.Actions = {
                 data = {
                     { label = "Copy Vector2", value = "vector2" },
                     { label = "Copy Vector3", value = "vector3" },
-                    { label = "Copy Vector4",    value = "vector4" },
-                    { label = "Copy Heading",  value = "heading" },
+                    { label = "Copy Vector4", value = "vector4" },
+                    { label = "Copy Heading", value = "heading" },
                 },
             },
-            { label = "Copy to Clipboard", option = "button", type = "client", event = "ps-adminmenu:client:copyToClipboard"},
+            { label = "Copy to Clipboard", option = "button", type = "client", event = "ps-adminmenu:client:copyToClipboard" },
         },
     },
 
@@ -194,15 +181,6 @@ Config.Actions = {
         },
     },
 
-    ["remove_stress"] = {
-        label = "Remove Stress",
-        perms = "mod",
-        dropdown = {
-            { label = "Player (Optional)", option = "dropdown", data = "players" },
-            { label = "Confirm",           option = "button",   type = "server", event = "ps-adminmenu:server:RemoveStress" },
-        },
-    },
-
     ["set_ammo"] = {
         label = "Set Ammo",
         perms = "admin",
@@ -211,15 +189,6 @@ Config.Actions = {
             { label = "Confirm",      option = "button", type = "client", event = "ps-adminmenu:client:SetAmmo" },
         },
     },
-
-    -- ["nui_focus"] = {
-    --     label = "Give NUI Focus",
-    --     perms = "mod",
-    --     dropdown = {
-    --         { label = "Player",  option = "dropdown", data = "players" },
-    --         { label = "Confirm", option = "button",   type = "client", event = "" },
-    --     },
-    -- },
 
     ["god_mode"] = {
         label = "God Mode",
@@ -247,20 +216,6 @@ Config.Actions = {
         perms = "mod",
     },
 
-    ["blackout"] = {
-        label = "Toggle Blackout",
-        type = "server",
-        event = "ps-adminmenu:server:ToggleBlackout",
-        perms = "mod",
-    },
-
-    ["toggle_duty"] = {
-        label = "Toggle Duty",
-        type = "server",
-        event = "QBCore:ToggleDuty",
-        perms = "mod",
-    },
-
     ["toggle_laser"] = {
         label = "Toggle Laser",
         type = "client",
@@ -269,7 +224,7 @@ Config.Actions = {
     },
 
     ["set_perms"] = {
-        label = "Set Perms",
+        label = "Set Group",
         perms = "admin",
         dropdown = {
             { label = "Player",  option = "dropdown", data = "players" },
@@ -277,9 +232,8 @@ Config.Actions = {
                 label = "Permissions",
                 option = "dropdown",
                 data = {
-                    { label = "Mod",   value = "mod" },
-                    { label = "Admin", value = "admin" },
-                    { label = "God",   value = "god" },
+                    { label = "Játékos", value = "user" },
+                    { label = "Admin",   value = "admin" },
                 },
             },
             { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:SetPerms" },
@@ -406,17 +360,6 @@ Config.Actions = {
         },
     },
 
-    ["set_gang"] = {
-        label = "Set Gang",
-        perms = "mod",
-        dropdown = {
-            { label = "Player",  option = "dropdown", data = "players" },
-            { label = "Gang",    option = "dropdown", data = "gangs" },
-            { label = "Grade",   option = "text",     data = "grades" },
-            { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:SetGang" },
-        },
-    },
-
     ["give_money"] = {
         label = "Give Money",
         perms = "admin",
@@ -427,9 +370,8 @@ Config.Actions = {
                 label = "Type",
                 option = "dropdown",
                 data = {
-                    { label = "Cash",   value = "cash" },
-                    { label = "Bank",   value = "bank" },
-                    { label = "Crypto", value = "crypto" },
+                    { label = "Készpénz", value = "money" },
+                    { label = "Bank",     value = "bank" },
                 },
             },
             { label = "Confirm", option = "button", type = "server", event = "ps-adminmenu:server:GiveMoney" },
@@ -445,9 +387,8 @@ Config.Actions = {
                 label = "Type",
                 option = "dropdown",
                 data = {
-                    { label = "Cash",   value = "cash" },
-                    { label = "Bank",   value = "bank" },
-                    { label = "Crypto", value = "crypto" },
+                    { label = "Készpénz", value = "money" },
+                    { label = "Bank",     value = "bank" },
                 },
             },
             { label = "Confirm", option = "button", type = "server", event = "ps-adminmenu:server:GiveMoneyAll" },
@@ -504,8 +445,8 @@ Config.Actions = {
 
     ["fix_vehicle"] = {
         label = "Fix Vehicle",
-        type = "command",
-        event = "fix",
+        type = "client",
+        event = "fl_adminmenu:fixVehicle",
         perms = "mod",
     },
 
@@ -523,7 +464,7 @@ Config.Actions = {
         perms = "mod",
         dropdown = {
             { label = "Player",  option = "dropdown", data = "players" },
-            { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:SpectateTarget" },
+            { label = "Confirm", option = "button",   type = "client", event = "ps-adminmenu:requestSpectate" },
         },
     },
 
@@ -596,36 +537,10 @@ Config.Actions = {
         perms = "mod",
     },
 
-    ["toggle_cuffs"] = {
-        label = "Toggle Cuffs",
-        perms = "mod",
-        dropdown = {
-            { label = "Player",  option = "dropdown", data = "players" },
-            { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:CuffPlayer" },
-        },
-    },
-
     ["max_mods"] = {
         label = "Max Vehicle Mods",
         type = "client",
         event = "ps-adminmenu:client:maxmodVehicle",
-        perms = "mod",
-    },
-
-    ["warn_player"] = {
-        label = "Warn Player",
-        perms = "mod",
-        dropdown = {
-            { label = "Player",  option = "dropdown", data = "players" },
-            { label = "Reason",  option = "text" },
-            { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:WarnPlayer" },
-        },
-    },
-
-    ["infinite_ammo"] = {
-        label = "Infinite Ammo",
-        type = "client",
-        event = "ps-adminmenu:client:setInfiniteAmmo",
         perms = "mod",
     },
 
@@ -636,25 +551,6 @@ Config.Actions = {
             { label = "Player",  option = "dropdown", data = "players" },
             { label = "Reason",  option = "text" },
             { label = "Confirm", option = "button",   type = "server", event = "ps-adminmenu:server:KickPlayer" },
-        },
-    },
-
-
-    ["play_sound"] = {
-        label = "Play Sound",
-        perms = "mod",
-        dropdown = {
-            { label = "Player",     option = "dropdown", data = "players" },
-            {
-                label = "Sound",
-                option = "dropdown",
-                data = {
-                    { label = "Alert",      value = "alert" },
-                    { label = "Cuff",       value = "cuff" },
-                    { label = "Air Wrench", value = "airwrench" },
-                },
-            },
-            { label = "Play Sound", option = "button",   type = "client", event = "ps-adminmenu:client:PlaySound" },
         },
     },
 }

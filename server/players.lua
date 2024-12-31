@@ -1,17 +1,15 @@
-local function getVehicles(cid)
+local function getVehicles(xPlayer)
     local result = MySQL.query.await(
-    'SELECT vehicle, plate, fuel, engine, body FROM player_vehicles WHERE citizenid = ?', { cid })
+        'SELECT vehicle, plate FROM owned_vehicles WHERE owner = ?', { xPlayer.identifier })
     local vehicles = {}
 
     for k, v in pairs(result) do
-        local vehicleData = QBCore.Shared.Vehicles[v.vehicle]
+        local vehicleData = json.decode(v.vehicle)
 
         if vehicleData then
             vehicles[#vehicles + 1] = {
                 id = k,
-                cid = cid,
-                label = vehicleData.name,
-                brand = vehicleData.brand,
+                cid = xPlayer.identifier,
                 model = vehicleData.model,
                 plate = v.plate,
                 fuel = v.fuel,
@@ -26,25 +24,24 @@ end
 
 local function getPlayers()
     local players = {}
-    local GetPlayers = QBCore.Functions.GetQBPlayers()
 
-    for k, v in pairs(GetPlayers) do
-        local playerData = v.PlayerData
-        local vehicles = getVehicles(playerData.citizenid)
+    for _, playerId in pairs(GetPlayers()) do
+        local xPlayer = ESX.GetPlayerFromId(playerId)
+        local vehicles = getVehicles(xPlayer)
+
 
         players[#players + 1] = {
-            id = k,
-            name = playerData.charinfo.firstname .. ' ' .. playerData.charinfo.lastname,
-            cid = playerData.citizenid,
-            license = QBCore.Functions.GetIdentifier(k, 'license'),
-            discord = QBCore.Functions.GetIdentifier(k, 'discord'),
-            steam = QBCore.Functions.GetIdentifier(k, 'steam'),
-            job = playerData.job.label,
-            grade = playerData.job.grade.level,
-            dob = playerData.charinfo.birthdate,
-            cash = playerData.money.cash,
-            bank = playerData.money.bank,
-            phone = playerData.charinfo.phone,
+            id = playerId,
+            name = xPlayer.getName(),
+            cid = xPlayer.identifier,
+            license = GetPlayerIdentifierByType(playerId, 'license'),
+            discord = GetPlayerIdentifierByType(playerId, 'discord'),
+            steam = GetPlayerIdentifierByType(playerId, 'steam'),
+            job = xPlayer.job.label,
+            grade = xPlayer.job.grade_label,
+            dob = xPlayer.dateofbirth,
+            cash = xPlayer.getAccount('money').money or 0,
+            bank = xPlayer.getAccount('bank').money or 0,
             vehicles = vehicles
         }
     end
@@ -64,52 +61,36 @@ RegisterNetEvent('ps-adminmenu:server:SetJob', function(data, selectedData)
     if not data or not CheckPerms(source, data.perms) then return end
     local src = source
     local playerId, Job, Grade = selectedData["Player"].value, selectedData["Job"].value, selectedData["Grade"].value
-    local Player = QBCore.Functions.GetPlayer(playerId)
-    local name = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
-    local jobInfo = QBCore.Shared.Jobs[Job]
+    local Player = ESX.GetPlayerFromId(playerId)
+    local name = Player.getName(9)
+    local jobInfo = ESX.Jobs[Job]
     local grade = jobInfo["grades"][selectedData["Grade"].value]
 
     if not jobInfo then
-        TriggerClientEvent('QBCore:Notify', source, "Not a valid job", 'error')
+        TriggerClientEvent('ox_lib:notify', src, {
+            description = "Munka nem létezik!",
+            type = 'error'
+        })
         return
     end
 
     if not grade then
-        TriggerClientEvent('QBCore:Notify', source, "Not a valid grade", 'error')
+        TriggerClientEvent('ox_lib:notify', src, {
+            description = "Érvénytelen rang",
+            type = 'error'
+        })
         return
     end
 
-    Player.Functions.SetJob(tostring(Job), tonumber(Grade))
+    Player.setJob(tostring(Job), tonumber(Grade))
     if Config.RenewedPhone then
         exports['qb-phone']:hireUser(tostring(Job), Player.PlayerData.citizenid, tonumber(Grade))
     end
 
-    QBCore.Functions.Notify(src, locale("jobset", name, Job, Grade), 'success', 5000)
-end)
-
--- Set Gang
-RegisterNetEvent('ps-adminmenu:server:SetGang', function(data, selectedData)
-    local data = CheckDataFromKey(data)
-    if not data or not CheckPerms(source, data.perms) then return end
-    local src = source
-    local playerId, Gang, Grade = selectedData["Player"].value, selectedData["Gang"].value, selectedData["Grade"].value
-    local Player = QBCore.Functions.GetPlayer(playerId)
-    local name = Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname
-    local GangInfo = QBCore.Shared.Gangs[Gang]
-    local grade = GangInfo["grades"][selectedData["Grade"].value]
-
-    if not GangInfo then
-        TriggerClientEvent('QBCore:Notify', source, "Not a valid Gang", 'error')
-        return
-    end
-
-    if not grade then
-        TriggerClientEvent('QBCore:Notify', source, "Not a valid grade", 'error')
-        return
-    end
-
-    Player.Functions.SetGang(tostring(Gang), tonumber(Grade))
-    QBCore.Functions.Notify(src, locale("gangset", name, Gang, Grade), 'success', 5000)
+    TriggerClientEvent('ox_lib:notify', src, {
+        description = locale("jobset", name, Job, Grade),
+        type = 'success'
+    })
 end)
 
 -- Set Perms
@@ -119,33 +100,21 @@ RegisterNetEvent("ps-adminmenu:server:SetPerms", function(data, selectedData)
     local src = source
     local rank = selectedData["Permissions"].value
     local targetId = selectedData["Player"].value
-    local tPlayer = QBCore.Functions.GetPlayer(tonumber(targetId))
+    local tPlayer = ESX.GetPlayerFromId(tonumber(targetId))
 
     if not tPlayer then
-        QBCore.Functions.Notify(src, locale("not_online"), "error", 5000)
+        TriggerClientEvent('ox_lib:notify', src, {
+            description = locale("not_online"),
+            type = 'error'
+        })
         return
     end
 
-    local name = tPlayer.PlayerData.charinfo.firstname .. ' ' .. tPlayer.PlayerData.charinfo.lastname
+    local name = tPlayer.getName()
 
-    QBCore.Functions.AddPermission(tPlayer.PlayerData.source, tostring(rank))
-    QBCore.Functions.Notify(tPlayer.PlayerData.source, locale("player_perms", name, rank), 'success', 5000)
-end)
-
--- Remove Stress
-RegisterNetEvent("ps-adminmenu:server:RemoveStress", function(data, selectedData)
-    local data = CheckDataFromKey(data)
-    if not data or not CheckPerms(source, data.perms) then return end
-    local src = source
-    local targetId = selectedData['Player (Optional)'] and tonumber(selectedData['Player (Optional)'].value) or src
-    local tPlayer = QBCore.Functions.GetPlayer(tonumber(targetId))
-
-    if not tPlayer then
-        QBCore.Functions.Notify(src, locale("not_online"), "error", 5000)
-        return
-    end
-
-    TriggerClientEvent('ps-adminmenu:client:removeStress', targetId)
-
-    QBCore.Functions.Notify(tPlayer.PlayerData.source, locale("removed_stress_player"), 'success', 5000)
+    tPlayer.setGroup(rank)
+    TriggerClientEvent('ox_lib:notify', src, {
+        description = locale("player_perms", name, rank),
+        type = 'success'
+    })
 end)

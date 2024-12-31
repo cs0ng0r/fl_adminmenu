@@ -5,21 +5,21 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventory', function(data, selectedDa
 
     local src = source
     local player = selectedData["Player"].value
-    local Player = QBCore.Functions.GetPlayer(player)
+    local Player = ESX.GetPlayerFromId(player)
 
     if not Player then
-        return QBCore.Functions.Notify(source, locale("not_online"), 'error', 7500)
+        return TriggerClientEvent('ox_lib:notify', src, {
+            description = locale("not_online"),
+            type = 'error'
+        })
     end
 
-    if Config.Inventory == 'ox_inventory' then
-        exports.ox_inventory:ClearInventory(player)
-    else
-        exports[Config.Inventory]:ClearInventory(player, nil)
-    end
+    exports.ox_inventory:ClearInventory(Player.source)
 
-    QBCore.Functions.Notify(src,
-        locale("invcleared", Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname),
-        'success', 7500)
+    TriggerClientEvent('ox_lib:notify', src, {
+        description = locale("invcleared", Player.getName()),
+        type = 'success'
+    })
 end)
 
 -- Clear Inventory Offline
@@ -29,26 +29,34 @@ RegisterNetEvent('ps-adminmenu:server:ClearInventoryOffline', function(data, sel
 
     local src = source
     local citizenId = selectedData["Citizen ID"].value
-    local Player = QBCore.Functions.GetPlayerByCitizenId(citizenId)
+    local Player = ESX.GetPlayerFromIdentifier(citizenId)
 
     if Player then
         if Config.Inventory == 'ox_inventory' then
-            exports.ox_inventory:ClearInventory(Player.PlayerData.source)
+            exports.ox_inventory:ClearInventory(Player.source)
         else
-            exports[Config.Inventory]:ClearInventory(Player.PlayerData.source, nil)
+            exports[Config.Inventory]:ClearInventory(Player.source, nil)
         end
-        QBCore.Functions.Notify(src,
-            locale("invcleared", Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname),
-            'success', 7500)
+        TriggerClientEvent('ox_lib:notify', src, {
+            description = locale("invcleared", Player.getName()),
+            type = 'success'
+        })
     else
-        MySQL.Async.fetchAll("SELECT * FROM players WHERE citizenid = @citizenid", { ['@citizenid'] = citizenId },
+        MySQL.Async.fetchAll("SELECT inventory FROM users WHERE identifier = @identifier", { ['@identifier'] = citizenId },
             function(result)
                 if result and result[1] then
-                    MySQL.Async.execute("UPDATE players SET inventory = '{}' WHERE citizenid = @citizenid",
-                        { ['@citizenid'] = citizenId })
-                    QBCore.Functions.Notify(src, "Player's inventory cleared", 'success', 7500)
+                    MySQL.Async.execute("UPDATE users SET inventory = '[]' WHERE identifier = @identifier",
+                        { ['@identifier'] = citizenId })
+
+                    TriggerClientEvent('ox_lib:notify', src, {
+                        description = 'Játékos inventory törölve!',
+                        type = 'success'
+                    })
                 else
-                    QBCore.Functions.Notify(src, locale("player_not_found"), 'error', 7500)
+                    TriggerClientEvent('ox_lib:notify', src, {
+                        description = locale("player_not_found"),
+                        type = 'error'
+                    })
                 end
             end)
     end
@@ -77,17 +85,22 @@ RegisterNetEvent('ps-adminmenu:server:GiveItem', function(data, selectedData)
     local target = selectedData["Player"].value
     local item = selectedData["Item"].value
     local amount = selectedData["Amount"].value
-    local Player = QBCore.Functions.GetPlayer(target)
+    local Player = ESX.GetPlayerFromId(target)
 
     if not item or not amount then return end
     if not Player then
-        return QBCore.Functions.Notify(source, locale("not_online"), 'error', 7500)
+        return TriggerClientEvent('ox_lib:notify', source, {
+            description = locale("not_online"),
+            type = 'error'
+        })
     end
 
-    Player.Functions.AddItem(item, amount)
-    QBCore.Functions.Notify(source,
-        locale("give_item", tonumber(amount) .. " " .. item,
-            Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname), "success", 7500)
+    Player.addInventoryItem(item, amount)
+
+    TriggerClientEvent('ox_lib:notify', source, {
+        description = locale("give_item", tonumber(amount) .. " " .. item, Player.getName()),
+        type = 'success'
+    })
 end)
 
 -- Give Item to All
@@ -97,13 +110,17 @@ RegisterNetEvent('ps-adminmenu:server:GiveItemAll', function(data, selectedData)
 
     local item = selectedData["Item"].value
     local amount = selectedData["Amount"].value
-    local players = QBCore.Functions.GetPlayers()
+    local players = GetPlayers()
 
     if not item or not amount then return end
 
     for _, id in pairs(players) do
-        local Player = QBCore.Functions.GetPlayer(id)
-        Player.Functions.AddItem(item, amount)
-        QBCore.Functions.Notify(source, locale("give_item_all", amount .. " " .. item), "success", 7500)
+        local Player = ESX.GetPlayerFromId(id)
+        Player.addInventoryItem(item, amount)
     end
+
+    TriggerClientEvent('ox_lib:notify', source, {
+        description = locale("give_item_all", amount .. " " .. item),
+        type = 'success'
+    })
 end)
